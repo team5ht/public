@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Tweak v1.0</title>
+
+  <!-- Подключаем Bootstrap (CSS + JS) по CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+  <!-- Подключаем Material Symbols Outlined для иконок с display=swap -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" />
+
+  <style>
+    /* Стили Material Symbols Outlined */
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 24;
+      font-size: 24px;
+      width: 24px;
+      height: 24px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    .fonts-loaded .material-symbols-outlined {
+      opacity: 1;
+    }
+
+    /* Общие стили */
+    body {
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    [data-bs-theme="dark"] {
+      background-color: #212529 !important;
+      color: #e0e0e0 !important;
+    }
+    .removed { background-color: #f3bbbf; }
+    .added { background-color: #aee4cc; }
+    .unchanged { background-color: #ffffff; }
+    [data-bs-theme="dark"] .removed { background-color: #7a2b2f; }
+    [data-bs-theme="dark"] .added { background-color: #295e2e; }
+    [data-bs-theme="dark"] .unchanged { background-color: #222222; }
+    [data-bs-theme="dark"] .form-control {
+      background-color: #333 !important;
+      color: #fff !important;
+      border-color: #555 !important;
+    }
+    [data-bs-theme="dark"] .form-control:focus {
+      background-color: #444 !important;
+      color: #fff !important;
+      border-color: #666 !important;
+    }
+    [data-bs-theme="dark"] .table {
+      color: #fff !important;
+      background-color: #222222 !important;
+    }
+    thead th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background-color: #e9ecef !important;
+    }
+    [data-bs-theme="dark"] thead th {
+      background-color: #333 !important;
+      color: #fff !important;
+    }
+    .highlight-differences .unchanged { opacity: 0.3; }
+    .highlight-differences .removed,
+    .highlight-differences .added { font-weight: bold; opacity: 1; }
+    .container { max-width: 1200px; }
+    .table.table-bordered { width: 100% !important; }
+    th.row-number, td.row-number {
+      white-space: nowrap;
+      padding: 0.75rem;
+      color: #6c757d !important;
+    }
+    [data-bs-theme="dark"] th.row-number, [data-bs-theme="dark"] td.row-number {
+      color: #adb5bd !important;
+    }
+    .header-text {
+      outline: none;
+      vertical-align: middle;
+    }
+    .edit-icon {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 5px;
+      cursor: default;
+      vertical-align: middle;
+    }
+    .edit-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+    [data-bs-theme="light"] .edit-icon svg { fill: #6c757d; }
+    [data-bs-theme="dark"] .edit-icon svg { fill: #adb5bd; }
+    .changed-row td:nth-child(2) {
+      border-right: 3px solid #66b2ff !important;
+    }
+    .changed-row td:nth-child(3) {
+      border-left: 3px solid #66b2ff !important;
+    }
+    #focus-indicator,
+    #dark-indicator {
+      position: fixed;
+      right: 10px;
+      z-index: 1000;
+      cursor: pointer;
+      opacity: 0.9;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+      padding: 8px 12px;
+      border-radius: 4px;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    #focus-indicator { top: 60px; }
+    #dark-indicator { top: 110px; background-color: #6c757d; }
+    #help-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 1100;
+      width: 90%;
+      max-width: 500px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      padding: 20px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+      opacity: 0;
+      visibility: hidden;
+    }
+    #help-popup.fade.show {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.3s ease-in-out;
+    }
+    #help-popup h2 { margin-top: 0; }
+    #help-popup .close-btn {
+      position: absolute;
+      top: 5px;
+      right: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    [data-bs-theme="dark"] #help-popup {
+      background-color: #333;
+      color: #fff;
+      border-color: #666;
+    }
+    .logo-part1 {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: #0d6efd;
+      margin: 0;
+      padding: 0;
+    }
+    .logo-part2 {
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: #000000;
+      margin: 0;
+      padding: 0;
+    }
+    [data-bs-theme="dark"] .logo-part1 {
+      color: #66b2ff;
+    }
+    [data-bs-theme="dark"] .logo-part2 {
+      color: #ffffff;
+    }
+  </style>
+</head>
+<body data-bs-theme="light">
+  <div class="container my-4">
+    <!-- Заголовок -->
+    <h1 class="mb-3">
+      <span class="logo-part1">team5ht</span><span class="logo-part2">\tweak</span>
+    </h1>
+    <p>
+      Нажмите клавишу <strong>H</strong> или <a href="#" id="help-link">нажмите здесь</a> для справки.
+    </p>
+    <!-- Поля ввода текста -->
+    <div class="row g-3 mb-3">
+      <div class="col">
+        <textarea id="text1" class="form-control" rows="8" placeholder="Введите первый текст..."></textarea>
+      </div>
+      <div class="col">
+        <textarea id="text2" class="form-control" rows="8" placeholder="Введите второй текст..."></textarea>
+      </div>
+    </div>
+    <!-- Кнопка сравнения -->
+    <button id="compare-btn" class="btn btn-primary mb-3">Сравнить</button>
+    <!-- Результат сравнения -->
+    <div id="result"></div>
+  </div>
+
+  <!-- Индикаторы режимов -->
+  <div id="focus-indicator" title="Кликните для переключения режима фокуса"></div>
+  <div id="dark-indicator" title="Кликните для переключения темной темы"></div>
+
+  <!-- Попап справки -->
+  <div id="help-popup" class="fade">
+    <span class="close-btn" id="help-close">×</span>
+    <h2>Горячие клавиши</h2>
+    <ul>
+      <li><strong>H</strong>: Показать/скрыть справку</li>
+      <li><strong>F</strong>: Переключить режим фокуса (выделение отличий)</li>
+      <li><strong>D</strong>: Переключить темную тему</li>
+    </ul>
+  </div>
+
+  <!-- Подключаем jsdiff -->
+  <script src="https://unpkg.com/diff@5.1.0/dist/diff.min.js"></script>
+  <script>
+    // Кэшируем элементы DOM
+    const text1El = document.getElementById("text1");
+    const text2El = document.getElementById("text2");
+    const resultEl = document.getElementById("result");
+    const focusIndicatorEl = document.getElementById("focus-indicator");
+    const darkIndicatorEl = document.getElementById("dark-indicator");
+    const helpPopupEl = document.getElementById("help-popup");
+    const helpCloseEl = document.getElementById("help-close");
+    const compareBtn = document.getElementById("compare-btn");
+    const helpLinkEl = document.getElementById("help-link");
+
+    // Функция для экранирования спецсимволов
+    function escapeHtml(text) {
+      const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+      return text.replace(/[&<>"']/g, m => map[m]);
+    }
+
+    // Функция сравнения текстов
+    function compareTexts() {
+      const text1 = text1El.value;
+      const text2 = text2El.value;
+      const lines1 = text1.split('\n');
+      const lines2 = text2.split('\n');
+      const maxLen = Math.max(lines1.length, lines2.length);
+
+      let html = '<table class="table table-bordered">';
+      html += '<thead><tr>';
+      html += '<th class="text-center row-number">№</th>';
+      html += '<th><span class="header-text" contenteditable="true">Текст 1</span><span class="edit-icon" contenteditable="false"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></span></th>';
+      html += '<th><span class="header-text" contenteditable="true">Текст 2</span><span class="edit-icon" contenteditable="false"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg></span></th>';
+      html += '</tr></thead><tbody>';
+
+      for (let i = 0; i < maxLen; i++) {
+        const line1 = lines1[i] || "";
+        const line2 = lines2[i] || "";
+        const diff = Diff.diffWords(line1, line2);
+        let leftHTML = "";
+        let rightHTML = "";
+        let rowHasDifference = false;
+
+        diff.forEach(part => {
+          if (part.added || part.removed) { rowHasDifference = true; }
+          if (part.added) {
+            rightHTML += '<span class="added">' + escapeHtml(part.value) + '</span>';
+          } else if (part.removed) {
+            leftHTML += '<span class="removed">' + escapeHtml(part.value) + '</span>';
+          } else {
+            leftHTML += '<span class="unchanged">' + escapeHtml(part.value) + '</span>';
+            rightHTML += '<span class="unchanged">' + escapeHtml(part.value) + '</span>';
+          }
+        });
+
+        const rowClass = rowHasDifference ? 'changed-row' : '';
+        html += `<tr class="${rowClass}">`;
+        html += `<td class="text-center row-number">${i + 1}</td>`;
+        html += `<td>${leftHTML}</td><td>${rightHTML}</td>`;
+        html += '</tr>';
+      }
+
+      html += '</tbody></table>';
+      resultEl.innerHTML = html;
+    }
+
+    // Обновление индикатора режима фокуса (текст неизменный, меняется только иконка и фон)
+    function updateFocusIndicator() {
+      const isHighlighted = document.body.classList.contains('highlight-differences');
+      const icon = isHighlighted ? 'center_focus_strong' : 'crop_free';
+      focusIndicatorEl.innerHTML = `<span class="material-symbols-outlined">${icon}</span> Фокус [F]`;
+      focusIndicatorEl.style.backgroundColor = isHighlighted ? "#198754" : "#343a40";
+    }
+
+    // Переключение режима фокуса
+    function toggleFocusMode() {
+      document.body.classList.toggle('highlight-differences');
+      updateFocusIndicator();
+    }
+
+    // Обновление индикатора темы (текст неизменный, меняется только иконка)
+    function updateDarkIndicator() {
+      const currentTheme = document.body.getAttribute("data-bs-theme");
+      const icon = currentTheme === "dark" ? 'dark_mode' : 'light_mode';
+      darkIndicatorEl.innerHTML = `<span class="material-symbols-outlined">${icon}</span> Тема [D]`;
+      darkIndicatorEl.style.backgroundColor = "#6c757d";
+    }
+
+    // Переключение тёмной/светлой темы
+    function toggleDarkTheme() {
+      const currentTheme = document.body.getAttribute("data-bs-theme");
+      document.body.setAttribute("data-bs-theme", currentTheme === "dark" ? "light" : "dark");
+      updateDarkIndicator();
+    }
+
+    // Обработка горячих клавиш
+    document.addEventListener('keydown', function(e) {
+      const active = document.activeElement;
+      if (active && (active.tagName === 'TEXTAREA' || active.tagName === 'INPUT' || active.isContentEditable)) { return; }
+      if (e.code === 'KeyF' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        e.preventDefault();
+        toggleFocusMode();
+      }
+      if (e.code === 'KeyH' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        e.preventDefault();
+        toggleHelpPopup();
+      }
+      if (e.code === 'KeyD' && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        e.preventDefault();
+        toggleDarkTheme();
+      }
+    });
+
+    // Попап справки
+    function toggleHelpPopup() {
+      helpPopupEl.classList.toggle('show');
+    }
+
+    // Привязка обработчиков событий
+    focusIndicatorEl.addEventListener('click', toggleFocusMode);
+    darkIndicatorEl.addEventListener('click', toggleDarkTheme);
+    helpCloseEl.addEventListener('click', () => helpPopupEl.classList.remove('show'));
+    helpLinkEl.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggleHelpPopup();
+    });
+    compareBtn.addEventListener('click', compareTexts);
+
+    // Инициализация индикаторов
+    updateFocusIndicator();
+    updateDarkIndicator();
+
+    // После загрузки шрифтов делаем иконки видимыми
+    document.fonts.ready.then(() => {
+      document.body.classList.add('fonts-loaded');
+    });
+  </script>
+</body>
+</html>
